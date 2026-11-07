@@ -1,0 +1,1747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Heimdall — Upload Your Video</title>
+<link rel="manifest" id="pwaManifestLink" href="./manifest-guest.json?v=23">
+<script>
+(function() {
+  var ua = navigator.userAgent || '';
+  var isIos = /iPhone|iPad|iPod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  if (isIos) {
+    var link = document.getElementById('pwaManifestLink');
+    if (link) link.removeAttribute('href');
+  }
+})();
+</script>
+<link rel="icon" type="image/png" sizes="192x192" href="./heimdall_icon_192.png?v=23">
+<link rel="icon" type="image/png" sizes="512x512" href="./heimdall_icon_512.png?v=23">
+<link rel="apple-touch-icon" href="./heimdall_icon_192.png?v=23">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Heimdall Drop">
+<meta name="theme-color" content="#060913">
+<style>
+  :root {
+    --bg: #060913;
+    --card: #0c1222;
+    --surface: #111a30;
+    --border: rgba(255, 255, 255, 0.1);
+    --accent: #38bdf8;
+    --emerald: #10b981;
+    --gold: #f59e0b;
+    --danger: #ef4444;
+    --text: #f8fafc;
+    --muted: #94a3b8;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0;
+    padding: env(safe-area-inset-top, 16px) 16px env(safe-area-inset-bottom, 24px) 16px;
+    background: radial-gradient(circle at 50% 0%, #0f1b33 0%, var(--bg) 70%);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  header {
+    width: 100%;
+    max-width: 440px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 2px 14px;
+    gap: 8px;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 16px;
+    font-weight: 800;
+    letter-spacing: 0.8px;
+  }
+  .brand img {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(56, 189, 248, 0.35);
+    border: 1px solid rgba(56, 189, 248, 0.35);
+  }
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .ip-badge {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--emerald);
+    background: rgba(16, 185, 129, 0.12);
+    border: 1px solid rgba(16, 185, 129, 0.35);
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-variant-numeric: tabular-nums;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+  }
+  .ip-badge.searching {
+    color: var(--gold);
+    background: rgba(245, 158, 11, 0.14);
+    border-color: rgba(245, 158, 11, 0.4);
+  }
+  .install-pill {
+    font-size: 11px;
+    font-weight: 800;
+    color: #fff;
+    background: linear-gradient(135deg, #0284c7, #2563eb);
+    border: 1px solid rgba(56, 189, 248, 0.55);
+    padding: 4px 10px;
+    border-radius: 999px;
+    cursor: pointer;
+  }
+  @media (display-mode: standalone), (display-mode: fullscreen), (display-mode: minimal-ui) {
+    #installAppBtn {
+      display: none !important;
+    }
+  }
+  .drop-card {
+    width: 100%;
+    max-width: 440px;
+    background: linear-gradient(145deg, #0d1629 0%, #080d1a 100%);
+    border: 1.5px solid rgba(56, 189, 248, 0.32);
+    border-radius: 20px;
+    padding: 26px 22px 22px;
+    text-align: center;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55);
+  }
+  .hero-icon {
+    width: 68px;
+    height: 68px;
+    border-radius: 18px;
+    margin: 0 auto 14px;
+    display: block;
+    box-shadow: 0 6px 24px rgba(56, 189, 248, 0.35);
+    border: 1.5px solid rgba(56, 189, 248, 0.45);
+  }
+  h1 {
+    font-size: 21px;
+    font-weight: 800;
+    margin: 0 0 6px;
+    letter-spacing: -0.2px;
+  }
+  p.sub {
+    color: var(--muted);
+    font-size: 13.5px;
+    line-height: 1.45;
+    margin: 0 0 22px;
+  }
+  .btn-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  label.action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    padding: 16px 20px;
+    border-radius: 14px;
+    font-weight: 800;
+    font-size: 15.5px;
+    cursor: pointer;
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+    user-select: none;
+  }
+  label.action-btn:active {
+    transform: scale(0.97);
+  }
+  label.action-btn.primary {
+    background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
+    color: #fff;
+    border: 1.5px solid rgba(56, 189, 248, 0.65);
+    box-shadow: 0 6px 20px rgba(2, 132, 199, 0.38);
+  }
+  label.action-btn.secondary {
+    background: var(--surface);
+    color: var(--text);
+    border: 1.5px solid var(--border);
+  }
+  input[type=file] { display: none; }
+  .progress-wrap {
+    display: none;
+    margin-top: 20px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 14px;
+    text-align: left;
+  }
+  .progress-wrap.active { display: block; }
+  .progress-top {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+  }
+  .progress-bar-bg {
+    width: 100%;
+    height: 8px;
+    background: #060913;
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #38bdf8, #10b981);
+    border-radius: 999px;
+    transition: width 0.1s linear;
+  }
+  .history-card {
+    width: 100%;
+    max-width: 440px;
+    margin-top: 14px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 14px 16px;
+    display: none;
+  }
+  .history-card.visible { display: block; }
+  .history-title {
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .history-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 7px 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    font-size: 12.5px;
+  }
+  .history-item:first-of-type { border-top: none; }
+  .history-name {
+    font-weight: 600;
+    color: var(--text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 240px;
+  }
+  .history-ok {
+    color: var(--emerald);
+    font-weight: 800;
+    font-size: 11.5px;
+  }
+  .history-err {
+    color: var(--danger);
+    font-weight: 800;
+    font-size: 11.5px;
+  }
+  .history-pending {
+    color: var(--accent);
+    font-weight: 700;
+    font-size: 11.5px;
+  }
+  .retry-btn {
+    width: 100%;
+    margin-top: 12px;
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid rgba(239, 68, 68, 0.5);
+    background: rgba(239, 68, 68, 0.16);
+    color: #fca5a5;
+    font-weight: 800;
+    font-size: 13px;
+    cursor: pointer;
+    display: none;
+  }
+  .retry-btn.visible { display: block; }
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(3, 6, 14, 0.82);
+    backdrop-filter: blur(8px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    z-index: 999;
+  }
+  .modal-backdrop.open { display: flex; }
+  .modal-box {
+    width: 100%;
+    max-width: 400px;
+    background: #0d1629;
+    border: 1.5px solid rgba(56, 189, 248, 0.45);
+    border-radius: 18px;
+    padding: 20px;
+    color: var(--text);
+    box-shadow: 0 18px 48px rgba(0, 0, 0, 0.75);
+  }
+</style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <img src="./heimdall_icon_192.png" alt="Heimdall">
+      <span>HEIMDALL</span>
+    </div>
+    <div class="header-right">
+      <button type="button" class="install-pill" id="installAppBtn" onclick="openInstallHelp()">📲 Install App</button>
+      <span class="ip-badge" id="ipBadge" onclick="forceRediscoverIp()" title="Tap to re-scan for Heimdall Mac IP">● <span id="ipBadgeText">Connecting...</span></span>
+    </div>
+  </header>
+
+  <div class="drop-card">
+    <img src="./heimdall_icon_192.png" alt="Heimdall" class="hero-icon">
+    <h1>Upload Your Video</h1>
+    <p class="sub">Send practice clips directly from your phone to the Heimdall Apple TV Replay Loop over Wi-Fi (Auto 1080p HD).</p>
+
+    <div class="btn-stack">
+      <label class="action-btn primary">
+        <span>📁 Choose Video from Camera Roll</span>
+        <input type="file" id="fileLibrary" accept="video/*" multiple>
+      </label>
+      <label class="action-btn secondary">
+        <span>📹 Record New Camera Rep (1080p)</span>
+        <input type="file" id="fileCamera" accept="video/*" capture="environment">
+      </label>
+    </div>
+    <div style="margin-top:10px;font-size:11px;color:var(--muted);">
+      Tip: Set phone camera top bar to <strong>FHD 60</strong> (1080p) for fastest upload. Any 4K video is automatically converted to 1080p60 on arrival.
+    </div>
+
+    <div class="progress-wrap" id="progressWrap">
+      <div class="progress-top">
+        <span id="progressLabel">Uploading...</span>
+        <span id="progressPct">0%</span>
+      </div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="progressFill"></div>
+      </div>
+    </div>
+    <button type="button" class="retry-btn" id="retryFailedBtn" onclick="retryFailedUploads()">↻ Retry Failed Uploads</button>
+    <button type="button" class="retry-btn" id="directLanUploadBtn" onclick="openDirectLanUploader()" style="border-color:rgba(56,189,248,0.55);background:rgba(56,189,248,0.16);color:#7dd3fc;">⚡ Open Direct Wi-Fi Uploader (<span id="directLanIpText">LAN</span>)</button>
+  </div>
+
+  <div class="history-card" id="historyCard">
+    <div class="history-title">Sent to Rink Loop This Session</div>
+    <div id="historyList"></div>
+  </div>
+
+  <!-- Install App & Auto-IP Guide Modal -->
+  <div class="modal-backdrop" id="installModal" onclick="if(event.target===this)this.classList.remove('open')">
+    <div class="modal-box">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <div style="font-size:16px;font-weight:800;color:#38bdf8;">📲 Install as Web App</div>
+        <button type="button" onclick="document.getElementById('installModal').classList.remove('open')" style="background:none;border:none;color:#94a3b8;font-size:20px;cursor:pointer;">✕</button>
+      </div>
+      <div style="font-size:12.5px;color:#cbd5e1;line-height:1.5;margin-bottom:12px;">
+        Install this static web address once. Whenever Heimdall is open on the Mac, this app securely discovers the host's current IP address in real time and stays connected automatically.
+      </div>
+      <div id="nativePromptWrap" style="display:none;margin-bottom:12px;">
+        <button type="button" onclick="triggerNativeInstallPrompt()" style="width:100%;padding:12px;border-radius:12px;border:1px solid #38bdf8;background:linear-gradient(135deg,#0284c7,#2563eb);color:#fff;font-weight:800;font-size:14px;cursor:pointer;">✨ Install Heimdall App Now</button>
+      </div>
+      <div style="background:#060913;border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:12px;font-size:12px;color:#cbd5e1;line-height:1.55;">
+        <div style="font-weight:800;color:#f8fafc;margin-bottom:6px;">How to Add to Home Screen:</div>
+        <div>• <strong>iPhone / iPad (Safari):</strong> Tap <strong>Share ↑</strong> → <strong>Add to Home Screen</strong>.</div>
+        <div style="margin-top:4px;">• <strong>Android (Chrome):</strong> Tap <strong>⋮ (menu)</strong> → <strong>Install app</strong> (or <strong>Add to Home screen</strong>).</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js', { scope: './' }).catch(() => {});
+    }
+
+    let deferredInstallPrompt = null;
+
+    function isPwaInstalled() {
+      try {
+        if (window.navigator.standalone === true) return true;
+        if (window.matchMedia && (
+          window.matchMedia('(display-mode: standalone)').matches ||
+          window.matchMedia('(display-mode: fullscreen)').matches ||
+          window.matchMedia('(display-mode: minimal-ui)').matches
+        )) return true;
+        if (document.referrer && document.referrer.startsWith('android-app://')) return true;
+        if (new URLSearchParams(window.location.search).get('pwa') === '1') return true;
+        if (localStorage.getItem('heimdall_drop_pwa_installed') === '1') return true;
+      } catch (_) {}
+      return false;
+    }
+
+    function syncInstallButtonVisibility() {
+      const btn = document.getElementById('installAppBtn');
+      if (!btn) return;
+      if (isPwaInstalled()) {
+        btn.style.display = 'none';
+        const modal = document.getElementById('installModal');
+        if (modal) modal.classList.remove('open');
+      } else {
+        btn.style.display = '';
+      }
+    }
+
+    syncInstallButtonVisibility();
+    try {
+      if (window.matchMedia) {
+        const mql = window.matchMedia('(display-mode: standalone)');
+        if (mql.addEventListener) mql.addEventListener('change', syncInstallButtonVisibility);
+        else if (mql.addListener) mql.addListener(syncInstallButtonVisibility);
+      }
+    } catch (_) {}
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredInstallPrompt = e;
+      try { localStorage.removeItem('heimdall_drop_pwa_installed'); } catch (_) {}
+      syncInstallButtonVisibility();
+      const wrap = document.getElementById('nativePromptWrap');
+      if (wrap) wrap.style.display = 'block';
+    });
+
+    window.addEventListener('appinstalled', () => {
+      deferredInstallPrompt = null;
+      try { localStorage.setItem('heimdall_drop_pwa_installed', '1'); } catch (_) {}
+      syncInstallButtonVisibility();
+    });
+
+    function openInstallHelp() {
+      if (deferredInstallPrompt) {
+        triggerNativeInstallPrompt();
+        return;
+      }
+      document.getElementById('installModal').classList.add('open');
+    }
+
+    async function triggerNativeInstallPrompt() {
+      if (!deferredInstallPrompt) return;
+      deferredInstallPrompt.prompt();
+      try {
+        const choice = await deferredInstallPrompt.userChoice;
+        if (choice && choice.outcome === 'accepted') {
+          try { localStorage.setItem('heimdall_drop_pwa_installed', '1'); } catch (_) {}
+        }
+      } catch (_) {}
+      deferredInstallPrompt = null;
+      const wrap = document.getElementById('nativePromptWrap');
+      if (wrap) wrap.style.display = 'none';
+      document.getElementById('installModal').classList.remove('open');
+      syncInstallButtonVisibility();
+    }
+
+    // =========================================================================
+    // REAL-TIME AUTO-IP DISCOVERY & CROSS-ORIGIN FAILOVER ENGINE
+    // =========================================================================
+    const bootMeta = window.__HEIMDALL_BOOTSTRAP__ || {};
+    const urlParams = new URLSearchParams(window.location.search);
+    const hashParams = new URLSearchParams((window.location.hash || '').replace(/^#/, ''));
+    const STORAGE_KEY = 'heimdall_discovery_meta_v1';
+    const SW_CACHE_NAME = 'heimdall-pwa-v20';
+
+    function isStaticCloudHostOrigin(originOrUrl) {
+      try {
+        const u = new URL(originOrUrl || window.location.origin);
+        const h = u.hostname.toLowerCase();
+        return (
+          h.endsWith('.github.io') ||
+          h.endsWith('.pages.dev') ||
+          h.endsWith('.netlify.app') ||
+          h.endsWith('.vercel.app') ||
+          h.endsWith('.surge.sh')
+        );
+      } catch (_) {
+        return false;
+      }
+    }
+
+    function isIosDevice() {
+      const ua = navigator.userAgent || '';
+      return /iPhone|iPad|iPod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    }
+
+    function readCookieToken() {
+      try {
+        const m = (document.cookie || '').match(/(?:^|;\s*)heimdall_k=([a-f0-9]{32})(?:;|$)/i);
+        return m && m[1] ? m[1] : '';
+      } catch (_) { return ''; }
+    }
+    function writeCookieToken(tok) {
+      if (!tok || !/^[a-f0-9]{32}$/i.test(tok)) return;
+      try {
+        document.cookie = 'heimdall_k=' + encodeURIComponent(tok) + '; path=/; max-age=31536000; SameSite=Lax';
+      } catch (_) {}
+    }
+    function readCookieTopic() {
+      try {
+        const m = (document.cookie || '').match(/(?:^|;\s*)heimdall_t=([a-zA-Z0-9_-]{8,64})(?:;|$)/);
+        return m && m[1] ? decodeURIComponent(m[1]) : '';
+      } catch (_) { return ''; }
+    }
+    function writeCookieTopic(top) {
+      if (!top || typeof top !== 'string') return;
+      try {
+        document.cookie = 'heimdall_t=' + encodeURIComponent(top) + '; path=/; max-age=31536000; SameSite=Lax';
+      } catch (_) {}
+    }
+
+    function loadSavedMeta() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}') || {};
+      } catch (_) { return {}; }
+    }
+    function syncMetaToServiceWorker(merged) {
+      const msg = {
+        type: 'SET_ACTIVE_ORIGIN',
+        origin: (merged && merged.activeOrigin) || activeServerOrigin || '',
+        lanIp: (merged && merged.lanIp) || activeServerIp || '',
+        port: (merged && merged.port) || 4848,
+        publicHttpsUrl: (merged && merged.publicHttpsUrl) || '',
+        authToken: (merged && merged.authToken) || AUTH_TOKEN || '',
+        rendezvousTopic: (merged && merged.rendezvousTopic) || RENDEZVOUS_TOPIC || '',
+        mdnsHost: (merged && merged.mdnsHost) || ''
+      };
+      if (typeof caches !== 'undefined' && caches && typeof caches.open === 'function') {
+        try {
+          const metaUrl = new URL('./__heimdall_meta__.json', window.location.href).pathname;
+          const bodyStr = JSON.stringify(Object.assign({}, merged || {}, msg, { updatedAt: Date.now() }));
+          caches.open(SW_CACHE_NAME).then(cache => {
+            cache.put(metaUrl, new Response(bodyStr, { status: 200, headers: { 'Content-Type': 'application/json' } })).catch(() => {});
+            if (metaUrl !== '/__heimdall_meta__.json') {
+              cache.put('/__heimdall_meta__.json', new Response(bodyStr, { status: 200, headers: { 'Content-Type': 'application/json' } })).catch(() => {});
+            }
+          }).catch(() => {});
+        } catch (_) {}
+      }
+      if (!('serviceWorker' in navigator) || !navigator.serviceWorker) return;
+      try {
+        if (navigator.serviceWorker.controller) {
+          navigator.serviceWorker.controller.postMessage(msg);
+        }
+        if (navigator.serviceWorker.ready) {
+          navigator.serviceWorker.ready.then(reg => {
+            if (reg && reg.active) reg.active.postMessage(msg);
+          }).catch(() => {});
+        }
+      } catch (_) {}
+    }
+    function saveDiscoveryMeta(meta) {
+      if (!meta || typeof meta !== 'object') return;
+      const merged = Object.assign({}, loadSavedMeta(), meta, { savedAt: Date.now() });
+      if (merged.authToken) writeCookieToken(merged.authToken);
+      if (merged.rendezvousTopic) writeCookieTopic(merged.rendezvousTopic);
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(merged)); } catch (_) {}
+      syncMetaToServiceWorker(merged);
+    }
+
+    function syncUrlHashWithCredentials() {
+      if (!AUTH_TOKEN) return;
+      try {
+        const targetHash = '#k=' + encodeURIComponent(AUTH_TOKEN) + (RENDEZVOUS_TOPIC ? '&t=' + encodeURIComponent(RENDEZVOUS_TOPIC) : '');
+        if (window.location.hash !== targetHash) {
+          window.history.replaceState(null, '', window.location.pathname + window.location.search + targetHash);
+        }
+        if (isIosDevice() && isStaticCloudHostOrigin(window.location.origin)) {
+          const mLink = document.getElementById('pwaManifestLink');
+          if (mLink && mLink.parentNode) mLink.parentNode.removeChild(mLink);
+        }
+      } catch (_) {}
+    }
+
+    const ON_STATIC_CLOUD_HOST = isStaticCloudHostOrigin(window.location.origin);
+    let activeServerOrigin = ON_STATIC_CLOUD_HOST ? '' : window.location.origin;
+    let activeServerIp = bootMeta.lanIp || (!ON_STATIC_CLOUD_HOST ? window.location.hostname : '');
+    let AUTH_TOKEN = '';
+    let RENDEZVOUS_TOPIC = '';
+
+    const initialHashToken = hashParams.get('k') || urlParams.get('k') || bootMeta.authToken || readCookieToken() || '';
+    const initialHashTopic = hashParams.get('t') || hashParams.get('topic') || urlParams.get('t') || urlParams.get('topic') || bootMeta.rendezvousTopic || readCookieTopic() || '';
+    if (initialHashToken) writeCookieToken(initialHashToken);
+    if (initialHashTopic) writeCookieTopic(initialHashTopic);
+    if (bootMeta && bootMeta.lanIp) {
+      saveDiscoveryMeta(Object.assign({}, bootMeta, initialHashToken ? { authToken: initialHashToken } : {}, initialHashTopic ? { rendezvousTopic: initialHashTopic } : {}));
+    } else if (initialHashToken || initialHashTopic) {
+      saveDiscoveryMeta(Object.assign({}, initialHashToken ? { authToken: initialHashToken } : {}, initialHashTopic ? { rendezvousTopic: initialHashTopic } : {}));
+    }
+    const DEFAULT_AUTH_TOKEN = '9869a6ba83aa2e9201d047149911fde9';
+    const savedMeta = loadSavedMeta();
+    AUTH_TOKEN = initialHashToken || savedMeta.authToken || DEFAULT_AUTH_TOKEN;
+    if (AUTH_TOKEN) writeCookieToken(AUTH_TOKEN);
+    if (savedMeta.lanIp && !bootMeta.lanIp) activeServerIp = savedMeta.lanIp;
+    // Never blindly trust savedMeta.publicHttpsUrl on ON_STATIC_CLOUD_HOST before probing it;
+    // discoverHeimdallServerIp() will probe savedMeta.publicHttpsUrl first and set activeServerOrigin only if alive.
+    if (activeServerIp) {
+      const bt = document.getElementById('ipBadgeText');
+      if (bt) bt.textContent = activeServerIp;
+    }
+
+    if ('serviceWorker' in navigator && navigator.serviceWorker) {
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        syncMetaToServiceWorker(loadSavedMeta());
+      });
+    }
+
+    // Pure-JS SHA-256 + HMAC-SHA256 for deriving topic & decrypting beacons even on plain HTTP LAN
+    const SHA256_K = new Uint32Array([
+      0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,
+      0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,
+      0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,
+      0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,
+      0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,
+      0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,
+      0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,
+      0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2
+    ]);
+    function sha256Bytes(msgBytes) {
+      const l = msgBytes.length;
+      const bitLenHi = Math.floor((l * 8) / 0x100000000);
+      const bitLenLo = (l * 8) >>> 0;
+      const padLen = ((l + 9 + 63) & ~63);
+      const buf = new Uint8Array(padLen);
+      buf.set(msgBytes);
+      buf[l] = 0x80;
+      const dv = new DataView(buf.buffer);
+      dv.setUint32(padLen - 8, bitLenHi, false);
+      dv.setUint32(padLen - 4, bitLenLo, false);
+      let h0 = 0x6a09e667, h1 = 0xbb67ae85, h2 = 0x3c6ef372, h3 = 0xa54ff53a;
+      let h4 = 0x510e527f, h5 = 0x9b05688c, h6 = 0x1f83d9ab, h7 = 0x5be0cd19;
+      const w = new Uint32Array(64);
+      for (let i = 0; i < padLen; i += 64) {
+        for (let j = 0; j < 16; j++) w[j] = dv.getUint32(i + j * 4, false);
+        for (let j = 16; j < 64; j++) {
+          const v0 = w[j - 15], v1 = w[j - 2];
+          const s0 = ((v0 >>> 7) | (v0 << 25)) ^ ((v0 >>> 18) | (v0 << 14)) ^ (v0 >>> 3);
+          const s1 = ((v1 >>> 17) | (v1 << 15)) ^ ((v1 >>> 19) | (v1 << 13)) ^ (v1 >>> 10);
+          w[j] = (w[j - 16] + s0 + w[j - 7] + s1) >>> 0;
+        }
+        let a = h0, b = h1, c = h2, d = h3, e = h4, f = h5, g = h6, h = h7;
+        for (let j = 0; j < 64; j++) {
+          const S1 = ((e >>> 6) | (e << 26)) ^ ((e >>> 11) | (e << 21)) ^ ((e >>> 25) | (e << 7));
+          const ch = (e & f) ^ (~e & g);
+          const t1 = (h + S1 + ch + SHA256_K[j] + w[j]) >>> 0;
+          const S0 = ((a >>> 2) | (a << 30)) ^ ((a >>> 13) | (a << 19)) ^ ((a >>> 22) | (a << 10));
+          const maj = (a & b) ^ (a & c) ^ (b & c);
+          const t2 = (S0 + maj) >>> 0;
+          h = g; g = f; f = e; e = (d + t1) >>> 0; d = c; c = b; b = a; a = (t1 + t2) >>> 0;
+        }
+        h0 = (h0 + a) >>> 0; h1 = (h1 + b) >>> 0; h2 = (h2 + c) >>> 0; h3 = (h3 + d) >>> 0;
+        h4 = (h4 + e) >>> 0; h5 = (h5 + f) >>> 0; h6 = (h6 + g) >>> 0; h7 = (h7 + h) >>> 0;
+      }
+      const out = new Uint8Array(32);
+      const odv = new DataView(out.buffer);
+      odv.setUint32(0, h0, false); odv.setUint32(4, h1, false); odv.setUint32(8, h2, false); odv.setUint32(12, h3, false);
+      odv.setUint32(16, h4, false); odv.setUint32(20, h5, false); odv.setUint32(24, h6, false); odv.setUint32(28, h7, false);
+      return out;
+    }
+    function bytesToHex(bytes) {
+      let s = '';
+      for (let i = 0; i < bytes.length; i++) s += bytes[i].toString(16).padStart(2, '0');
+      return s;
+    }
+    function hexToBytes(hex) {
+      const clean = String(hex || '').replace(/[^0-9a-fA-F]/g, '');
+      const out = new Uint8Array(Math.floor(clean.length / 2));
+      for (let i = 0; i < out.length; i++) out[i] = parseInt(clean.substr(i * 2, 2), 16);
+      return out;
+    }
+    function hmacSha256Hex(keyStr, msgStr) {
+      const te = new TextEncoder();
+      let keyBytes = te.encode(keyStr);
+      if (keyBytes.length > 64) keyBytes = sha256Bytes(keyBytes);
+      const kPad = new Uint8Array(64);
+      kPad.set(keyBytes);
+      const ipad = new Uint8Array(64);
+      const opad = new Uint8Array(64);
+      for (let i = 0; i < 64; i++) {
+        ipad[i] = kPad[i] ^ 0x36;
+        opad[i] = kPad[i] ^ 0x5c;
+      }
+      const msgBytes = te.encode(msgStr);
+      const innerInput = new Uint8Array(64 + msgBytes.length);
+      innerInput.set(ipad);
+      innerInput.set(msgBytes, 64);
+      const innerHash = sha256Bytes(innerInput);
+      const outerInput = new Uint8Array(64 + 32);
+      outerInput.set(opad);
+      outerInput.set(innerHash, 64);
+      return bytesToHex(sha256Bytes(outerInput));
+    }
+    function signRelayCommandClient(cmdObj, tokenHex) {
+      if (!tokenHex) return cmdObj;
+      const ts = Date.now();
+      const nonceBytes = new Uint8Array(8);
+      if (window.crypto && window.crypto.getRandomValues) window.crypto.getRandomValues(nonceBytes);
+      else for (let i = 0; i < 8; i++) nonceBytes[i] = Math.floor(Math.random() * 256);
+      const nonce = bytesToHex(nonceBytes);
+      const body = Object.assign({}, cmdObj, { ts, nonce });
+      delete body.sig;
+      const sig = hmacSha256Hex(tokenHex.toLowerCase(), JSON.stringify(body));
+      return Object.assign({}, body, { sig });
+    }
+    function deriveTopicFromToken(token) {
+      if (!token) return '';
+      const hashHex = bytesToHex(sha256Bytes(new TextEncoder().encode('heimdall-topic-v2:' + token.toLowerCase())));
+      return 'heimdall-rink-' + hashHex.slice(0, 16);
+    }
+    async function sendRendezvousCommand(payload) {
+      if (!RENDEZVOUS_TOPIC && AUTH_TOKEN) RENDEZVOUS_TOPIC = deriveTopicFromToken(AUTH_TOKEN);
+      if (!RENDEZVOUS_TOPIC || !AUTH_TOKEN) return false;
+      try {
+        const signed = signRelayCommandClient(payload, AUTH_TOKEN);
+        const res = await fetch('https://ntfy.sh/' + encodeURIComponent(RENDEZVOUS_TOPIC + '-cmd'), {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+          body: JSON.stringify(signed)
+        });
+        return res.ok;
+      } catch (_) {
+        return false;
+      }
+    }
+    const DEFAULT_RENDEZVOUS_TOPIC = 'heimdall-rink-8a8c0bc0b3873227';
+    const FALLBACK_RENDEZVOUS_TOPICS = [
+      'heimdall-rink-8a8c0bc0b3873227',
+      'heimdall-rink-afbd9c0bec9b4d4a',
+      'heimdall-rink-96935773839d8d'
+    ];
+    async function decryptBeaconClient(envelope, tokenHex) {
+      if (!envelope || typeof envelope !== 'object') return null;
+      if (envelope.lanIp) return envelope;
+      const candidateTokens = [];
+      for (const tk of [tokenHex, DEFAULT_AUTH_TOKEN, 'af0be6109ae73f9962f0c2fcdf56c18d']) {
+        if (tk && tk.length >= 32 && !candidateTokens.includes(tk)) candidateTokens.push(tk);
+      }
+      for (const candToken of candidateTokens) {
+        const keyBytes = hexToBytes(candToken.slice(0, 32));
+        if (envelope.v === 2 && envelope.iv && envelope.ct && envelope.tag && window.crypto && window.crypto.subtle) {
+          try {
+            const iv = hexToBytes(envelope.iv);
+            const ct = hexToBytes(envelope.ct);
+            const tag = hexToBytes(envelope.tag);
+            const combined = new Uint8Array(ct.length + tag.length);
+            combined.set(ct);
+            combined.set(tag, ct.length);
+            const cryptoKey = await window.crypto.subtle.importKey('raw', keyBytes, { name: 'AES-GCM' }, false, ['decrypt']);
+            const plainBuf = await window.crypto.subtle.decrypt({ name: 'AES-GCM', iv }, cryptoKey, combined);
+            return JSON.parse(new TextDecoder().decode(plainBuf));
+          } catch (_) {}
+        }
+        if (envelope.iv && envelope.ct2) {
+          try {
+            const ivHex = String(envelope.iv);
+            const ct2 = hexToBytes(envelope.ct2);
+            const pt = new Uint8Array(ct2.length);
+            const te = new TextEncoder();
+            for (let offset = 0, blk = 0; offset < ct2.length; offset += 32, blk++) {
+              const pad = sha256Bytes(te.encode(candToken.slice(0, 32).toLowerCase() + ':' + ivHex + ':' + blk));
+              const lim = Math.min(32, ct2.length - offset);
+              for (let i = 0; i < lim; i++) pt[offset + i] = ct2[offset + i] ^ pad[i];
+            }
+            return JSON.parse(new TextDecoder().decode(pt));
+          } catch (_) {}
+        }
+      }
+      if (envelope.iv && envelope.tct) {
+        const candidateTopics = [];
+        for (const tp of [RENDEZVOUS_TOPIC, DEFAULT_RENDEZVOUS_TOPIC, ...FALLBACK_RENDEZVOUS_TOPICS]) {
+          if (tp && !candidateTopics.includes(tp)) candidateTopics.push(tp);
+        }
+        const ivHex = String(envelope.iv);
+        const tct = hexToBytes(envelope.tct);
+        const te = new TextEncoder();
+        for (const topicKey of candidateTopics) {
+          try {
+            const pt = new Uint8Array(tct.length);
+            for (let offset = 0, blk = 0; offset < tct.length; offset += 32, blk++) {
+              const pad = sha256Bytes(te.encode('heimdall-topic-key:' + topicKey + ':' + ivHex + ':' + blk));
+              const lim = Math.min(32, tct.length - offset);
+              for (let i = 0; i < lim; i++) pt[offset + i] = tct[offset + i] ^ pad[i];
+            }
+            const parsed = JSON.parse(new TextDecoder().decode(pt));
+            if (parsed && parsed.lanIp) return parsed;
+          } catch (_) {}
+        }
+      }
+      return null;
+    }
+
+    RENDEZVOUS_TOPIC = initialHashTopic || bootMeta.rendezvousTopic || savedMeta.rendezvousTopic || deriveTopicFromToken(AUTH_TOKEN) || DEFAULT_RENDEZVOUS_TOPIC;
+    if (RENDEZVOUS_TOPIC) writeCookieTopic(RENDEZVOUS_TOPIC);
+    syncUrlHashWithCredentials();
+    const MDNS_HOST = hashParams.get('m') || urlParams.get('mdns') || bootMeta.mdnsHost || savedMeta.mdnsHost || '';
+    const SERVER_PORT = Number(bootMeta.port || savedMeta.port || 4848);
+    const HTTPS_SERVER_PORT = Number(bootMeta.httpsPort || savedMeta.httpsPort || 4849);
+
+    let isDiscoveringIp = false;
+    let isUploadingBatch = false;
+    let ntfyEventSource = null;
+
+    function isPrivateLanOrMdnsHost(host) {
+      const h = String(host || '').trim().toLowerCase();
+      if (!h) return false;
+      if (h.endsWith('.local') || h === 'localhost' || h === '127.0.0.1') return true;
+      if (/^192\.168\.\d{1,3}\.\d{1,3}$/.test(h)) return true;
+      if (/^10\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(h)) return true;
+      const m172 = h.match(/^172\.(\d{1,3})\.\d{1,3}\.\d{1,3}$/);
+      if (m172) {
+        const second = Number(m172[1]);
+        if (second >= 16 && second <= 31) return true;
+      }
+      return false;
+    }
+
+    function buildCandidateOriginsForHost(host, meta) {
+      const httpPort = (meta && meta.port) || SERVER_PORT;
+      const httpsPort = (meta && meta.httpsPort) || HTTPS_SERVER_PORT;
+      const isHttps = window.location.protocol === 'https:';
+      const list = [];
+      const addUnique = (url) => {
+        if (url && !list.includes(url)) list.push(url);
+      };
+      if (isHttps) {
+        if (meta && meta.publicHttpsUrl && meta.publicHttpsUrl.startsWith('https://') && !isStaticCloudHostOrigin(meta.publicHttpsUrl)) {
+          addUnique(meta.publicHttpsUrl.replace(/\/+$/, ''));
+        }
+        if (host) {
+          addUnique('https://' + host + ':' + httpsPort);
+        }
+      } else {
+        if (host) {
+          addUnique('http://' + host + ':' + httpPort);
+          addUnique('https://' + host + ':' + httpsPort);
+        }
+        if (meta && meta.publicHttpsUrl && !isStaticCloudHostOrigin(meta.publicHttpsUrl)) {
+          addUnique(meta.publicHttpsUrl.replace(/\/+$/, ''));
+        }
+      }
+      return list;
+    }
+
+    const KNOWN_SUBNETS_KEY = 'heimdall_known_subnets_v1';
+    const KNOWN_HOSTS_KEY = 'heimdall_known_hosts_v1';
+
+    function extractSubnetPrefix(ipOrPrefix) {
+      const s = String(ipOrPrefix || '').trim();
+      if (!s) return '';
+      if (/^\d{1,3}\.\d{1,3}\.\d{1,3}\.$/.test(s)) {
+        const p = s.slice(0, -1).split('.').map(Number);
+        if (p[0] === 192 && p[1] === 168 && p[2] >= 0 && p[2] <= 255) return s;
+        if (p[0] === 10 && p[1] >= 0 && p[1] <= 255 && p[2] >= 0 && p[2] <= 255) return s;
+        if (p[0] === 172 && p[1] >= 16 && p[1] <= 31 && p[2] >= 0 && p[2] <= 255) return s;
+        return '';
+      }
+      const parts = s.split('.');
+      if (parts.length === 4 && parts.every(x => /^\d+$/.test(x))) {
+        const p = parts.map(Number);
+        if (
+          (p[0] === 192 && p[1] === 168) ||
+          (p[0] === 10) ||
+          (p[0] === 172 && p[1] >= 16 && p[1] <= 31)
+        ) {
+          return parts[0] + '.' + parts[1] + '.' + parts[2] + '.';
+        }
+      }
+      return '';
+    }
+
+    function extractHostOctet(ip) {
+      const parts = String(ip || '').trim().split('.');
+      if (parts.length === 4 && parts.every(x => /^\d+$/.test(x))) {
+        const host = Number(parts[3]);
+        if (host >= 1 && host <= 254) return host;
+      }
+      return 0;
+    }
+
+    function getKnownSubnetPrefixes() {
+      try {
+        const arr = JSON.parse(localStorage.getItem(KNOWN_SUBNETS_KEY) || '[]');
+        return Array.isArray(arr) ? arr.filter(p => Boolean(extractSubnetPrefix(p))) : [];
+      } catch (_) {
+        return [];
+      }
+    }
+
+    function getKnownHostOctets() {
+      try {
+        const arr = JSON.parse(localStorage.getItem(KNOWN_HOSTS_KEY) || '[]');
+        return Array.isArray(arr) ? arr.map(Number).filter(n => n >= 1 && n <= 254) : [];
+      } catch (_) {
+        return [];
+      }
+    }
+
+    function rememberSubnetAndIp(ipOrList, extraSubnets = []) {
+      try {
+        const ips = Array.isArray(ipOrList) ? ipOrList : (ipOrList ? [ipOrList] : []);
+        const subnets = getKnownSubnetPrefixes();
+        const hosts = getKnownHostOctets();
+        const addPrefix = (pref) => {
+          const clean = extractSubnetPrefix(pref);
+          if (!clean) return;
+          const idx = subnets.indexOf(clean);
+          if (idx >= 0) subnets.splice(idx, 1);
+          subnets.unshift(clean);
+        };
+        const addHost = (h) => {
+          if (!h || h < 1 || h > 254) return;
+          const idx = hosts.indexOf(h);
+          if (idx >= 0) hosts.splice(idx, 1);
+          hosts.unshift(h);
+        };
+        for (const s of (extraSubnets || [])) addPrefix(s);
+        for (const ip of ips) {
+          addPrefix(ip);
+          addHost(extractHostOctet(ip));
+        }
+        localStorage.setItem(KNOWN_SUBNETS_KEY, JSON.stringify(subnets.slice(0, 16)));
+        localStorage.setItem(KNOWN_HOSTS_KEY, JSON.stringify(hosts.slice(0, 12)));
+      } catch (_) {}
+    }
+
+    rememberSubnetAndIp(
+      [bootMeta.lanIp, savedMeta.lanIp, window.location.hostname].concat(bootMeta.lanIps || []).concat(savedMeta.lanIps || []),
+      (bootMeta.subnets || []).concat(savedMeta.subnets || [])
+    );
+
+    async function detectLocalLanPrefixViaWebRTC(timeoutMs = 550) {
+      const RTCPeer = window.RTCPeerConnection || window.webkitRTCPeerConnection;
+      if (!RTCPeer) return '';
+      return new Promise((resolve) => {
+        let settled = false;
+        let pc = null;
+        const finish = (prefix) => {
+          if (settled) return;
+          settled = true;
+          try { if (pc) pc.close(); } catch (_) {}
+          if (prefix) rememberSubnetAndIp([], [prefix]);
+          resolve(prefix || '');
+        };
+        const timer = setTimeout(() => finish(''), timeoutMs);
+        try {
+          pc = new RTCPeer({ iceServers: [] });
+          pc.createDataChannel('d');
+          pc.onicecandidate = (ev) => {
+            if (!ev || !ev.candidate || !ev.candidate.candidate) {
+              if (ev && !ev.candidate) {
+                clearTimeout(timer);
+                finish('');
+              }
+              return;
+            }
+            const candStr = ev.candidate.candidate;
+            const m = candStr.match(/\b((?:192\.168|10\.\d{1,3}|172\.(?:1[6-9]|2\d|3[01]))\.\d{1,3}\.\d{1,3})\b/);
+            if (m && m[1]) {
+              const pref = extractSubnetPrefix(m[1]);
+              if (pref) {
+                clearTimeout(timer);
+                finish(pref);
+              }
+            }
+          };
+          pc.createOffer().then(o => pc.setLocalDescription(o)).catch(() => {
+            clearTimeout(timer);
+            finish('');
+          });
+        } catch (_) {
+          clearTimeout(timer);
+          finish('');
+        }
+      });
+    }
+
+    async function detectActiveGatewaySubnets(candidatePrefixes, timeoutMs = 220) {
+      if (window.location.protocol === 'https:' || !Array.isArray(candidatePrefixes) || candidatePrefixes.length === 0) {
+        return [];
+      }
+      const checks = candidatePrefixes.map(async (prefix) => {
+        const ctrl = new AbortController();
+        const t0 = performance.now();
+        const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+        try {
+          await fetch('http://' + prefix + '1:' + SERVER_PORT + '/api/health', {
+            method: 'GET',
+            mode: 'no-cors',
+            cache: 'no-store',
+            signal: ctrl.signal
+          });
+          clearTimeout(timer);
+          return { prefix, dt: performance.now() - t0, active: true };
+        } catch (err) {
+          clearTimeout(timer);
+          const dt = performance.now() - t0;
+          const isFastReject = err && err.name !== 'AbortError' && dt < (timeoutMs - 35);
+          return { prefix, dt, active: isFastReject };
+        }
+      });
+      const results = await Promise.all(checks);
+      return results
+        .filter(r => r && r.active)
+        .sort((a, b) => a.dt - b.dt)
+        .map(r => r.prefix);
+    }
+
+    async function probeLocalLanReachableFromHttps(ip, httpsPort = HTTPS_SERVER_PORT, timeoutMs = 380) {
+      if (!ip || !isPrivateLanOrMdnsHost(ip)) return false;
+      const prefix = extractSubnetPrefix(ip);
+      const hostOctet = extractHostOctet(ip);
+      const deadOctet = (hostOctet === 253) ? 252 : 253;
+      const controlIp = prefix ? (prefix + deadOctet) : '';
+
+      async function timeHttpsProbe(targetHost) {
+        const ctrl = new AbortController();
+        const t0 = performance.now();
+        const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+        try {
+          await fetch('https://' + targetHost + ':' + httpsPort + '/api/health', {
+            method: 'GET',
+            mode: 'no-cors',
+            cache: 'no-store',
+            signal: ctrl.signal
+          });
+          clearTimeout(timer);
+          return { responded: true, dt: performance.now() - t0 };
+        } catch (err) {
+          clearTimeout(timer);
+          const dt = performance.now() - t0;
+          const responded = Boolean(err && err.name !== 'AbortError' && dt < (timeoutMs - 40));
+          return { responded, dt };
+        }
+      }
+
+      const [targetRes, controlRes] = await Promise.all([
+        timeHttpsProbe(ip),
+        controlIp ? timeHttpsProbe(controlIp) : Promise.resolve({ responded: false, dt: timeoutMs })
+      ]);
+      if (!targetRes.responded) return false;
+      if (!controlRes.responded) return true;
+      return targetRes.dt * 2.2 < controlRes.dt;
+    }
+
+    function maybeHandoffToLocalHttpOnLan(ip, port = SERVER_PORT) {
+      if (!ip || !ON_STATIC_CLOUD_HOST || window.location.protocol !== 'https:') return false;
+      if (urlParams.get('stay_https') === '1') return false;
+      try {
+        const handoffKey = 'heimdall_drop_lan_handoff_' + ip + ':' + port;
+        const lastAttempt = Number(sessionStorage.getItem(handoffKey) || 0);
+        if (lastAttempt && (Date.now() - lastAttempt) < 15000) return false;
+        sessionStorage.setItem(handoffKey, String(Date.now()));
+      } catch (_) {}
+      const kParam = AUTH_TOKEN ? ('?k=' + encodeURIComponent(AUTH_TOKEN)) : '';
+      const hashSuffix = AUTH_TOKEN
+        ? ('#k=' + encodeURIComponent(AUTH_TOKEN) + (RENDEZVOUS_TOPIC ? '&t=' + encodeURIComponent(RENDEZVOUS_TOPIC) : ''))
+        : '';
+      const targetUrl = 'http://' + ip + ':' + port + '/drop' + kParam + hashSuffix;
+      window.location.replace(targetUrl);
+      return true;
+    }
+
+    function setActiveServerIp(ip, port = SERVER_PORT, meta = null, resolvedOrigin = null) {
+      if (!ip) return;
+      rememberSubnetAndIp(
+        [ip].concat((meta && meta.lanIps) || []),
+        (meta && meta.subnets) || []
+      );
+      activeServerIp = ip;
+      const isHttps = window.location.protocol === 'https:';
+      let nextOrigin = resolvedOrigin;
+      if (!nextOrigin) {
+        if (isHttps) {
+          const httpsPort = (meta && meta.httpsPort) || HTTPS_SERVER_PORT;
+          if (meta && meta.publicHttpsUrl && meta.publicHttpsUrl.startsWith('https://') && !isStaticCloudHostOrigin(meta.publicHttpsUrl)) {
+            nextOrigin = meta.publicHttpsUrl.replace(/\/+$/, '');
+          } else if (!ON_STATIC_CLOUD_HOST) {
+            nextOrigin = 'https://' + ip + ':' + httpsPort;
+          } else {
+            nextOrigin = '';
+          }
+        } else {
+          nextOrigin = 'http://' + ip + ':' + port;
+        }
+      }
+      if (nextOrigin && !isStaticCloudHostOrigin(nextOrigin)) {
+        activeServerOrigin = nextOrigin;
+        const lanBtn = document.getElementById('directLanUploadBtn');
+        if (lanBtn) lanBtn.classList.remove('visible');
+      } else if (ON_STATIC_CLOUD_HOST) {
+        activeServerOrigin = '';
+      }
+      const badge = document.getElementById('ipBadge');
+      const badgeText = document.getElementById('ipBadgeText');
+      if (badge) badge.classList.remove('searching');
+      if (badgeText) badgeText.textContent = ip;
+      if (meta) {
+        if (meta.authToken && meta.authToken !== AUTH_TOKEN) {
+          AUTH_TOKEN = meta.authToken;
+          writeCookieToken(AUTH_TOKEN);
+        }
+        saveDiscoveryMeta(Object.assign({}, meta, { lanIp: ip, activeOrigin: activeServerOrigin }, AUTH_TOKEN ? { authToken: AUTH_TOKEN } : {}));
+        syncUrlHashWithCredentials();
+      } else {
+        saveDiscoveryMeta({ lanIp: ip, port, activeOrigin: activeServerOrigin });
+      }
+    }
+
+    async function probeCandidateOrigin(origin, timeoutMs = 3500) {
+      if (!origin || isStaticCloudHostOrigin(origin)) return null;
+      if (window.location.protocol === 'https:' && !origin.startsWith('https://')) return null;
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+      try {
+        const challengeBytes = new Uint8Array(4);
+        if (window.crypto && window.crypto.getRandomValues) window.crypto.getRandomValues(challengeBytes);
+        else for (let i = 0; i < 4; i++) challengeBytes[i] = Math.floor(Math.random() * 256);
+        const challenge = bytesToHex(challengeBytes);
+        const topicForProbe = RENDEZVOUS_TOPIC || DEFAULT_RENDEZVOUS_TOPIC;
+        const qParts = ['c=' + encodeURIComponent(challenge)];
+        if (topicForProbe) qParts.push('t=' + encodeURIComponent(topicForProbe));
+        const discQuery = '?' + qParts.join('&');
+        const res = await fetch(origin + '/api/discovery' + discQuery, {
+          method: 'GET',
+          mode: 'cors',
+          cache: 'no-store',
+          headers: AUTH_TOKEN ? { 'X-Heimdall-Token': AUTH_TOKEN } : {},
+          signal: ctrl.signal
+        });
+        clearTimeout(timer);
+        if (!res.ok) return null;
+        const data = await res.json();
+        if (data && data.ok && data.service === 'heimdall-rink-replay') {
+          if (AUTH_TOKEN && data.discoveryProof && data.lanIp && data.port) {
+            const expectedProof = hmacSha256Hex(
+              AUTH_TOKEN.toLowerCase(),
+              'heimdall-disc-v1:' + String(data.discoveryChallenge || challenge) + ':' + data.lanIp + ':' + data.port
+            );
+            if (String(data.discoveryProof).toLowerCase() !== expectedProof.toLowerCase()) {
+              return null;
+            }
+          }
+          rememberSubnetAndIp([data.lanIp].concat(data.lanIps || []), data.subnets || []);
+          data._resolvedOrigin = origin;
+          return data;
+        }
+      } catch (_) {
+        clearTimeout(timer);
+      }
+      return null;
+    }
+
+    let lastGhBeaconEtag = '';
+    let lastGhBeaconEnvelope = null;
+
+    async function fetchRendezvousLatestIp() {
+      if (!RENDEZVOUS_TOPIC && AUTH_TOKEN) RENDEZVOUS_TOPIC = deriveTopicFromToken(AUTH_TOKEN);
+      if (!RENDEZVOUS_TOPIC) RENDEZVOUS_TOPIC = DEFAULT_RENDEZVOUS_TOPIC;
+      const candidates = [];
+
+      async function tryGithubApi() {
+        const ctrl = new AbortController();
+        const timer = setTimeout(() => ctrl.abort(), 3200);
+        try {
+          const headers = { 'Accept': 'application/vnd.github.v3.raw' };
+          if (lastGhBeaconEtag) headers['If-None-Match'] = lastGhBeaconEtag;
+          const res = await fetch('https://api.github.com/repos/jrmantia/heimdall/contents/beacon.json?ref=main', {
+            headers,
+            signal: ctrl.signal
+          });
+          clearTimeout(timer);
+          if (res.status === 304 && lastGhBeaconEnvelope) {
+            const msg = await decryptBeaconClient(lastGhBeaconEnvelope, AUTH_TOKEN);
+            if (msg && msg.lanIp) candidates.push({ msg, ts: Number(lastGhBeaconEnvelope.ts) || 0 });
+            return;
+          }
+          if (!res.ok) return;
+          const etag = res.headers.get('etag');
+          const env = await res.json();
+          if (etag) lastGhBeaconEtag = etag;
+          if (env && typeof env === 'object') {
+            lastGhBeaconEnvelope = env;
+            const msg = await decryptBeaconClient(env, AUTH_TOKEN);
+            if (msg && msg.lanIp) candidates.push({ msg, ts: Number(env.ts) || Date.now() });
+          }
+        } catch (_) {
+          clearTimeout(timer);
+        }
+      }
+
+      async function tryStaticPagesBeacon() {
+        const ctrl = new AbortController();
+        const timer = setTimeout(() => ctrl.abort(), 3200);
+        try {
+          const beaconUrl = ON_STATIC_CLOUD_HOST
+            ? ('./beacon.json?t=' + Date.now())
+            : ('https://jrmantia.github.io/heimdall/beacon.json?t=' + Date.now());
+          const res = await fetch(beaconUrl, { cache: 'no-store', signal: ctrl.signal });
+          clearTimeout(timer);
+          if (!res.ok) return;
+          const env = await res.json();
+          if (env && typeof env === 'object') {
+            const msg = await decryptBeaconClient(env, AUTH_TOKEN);
+            if (msg && msg.lanIp) candidates.push({ msg, ts: Number(env.ts) || 0 });
+          }
+        } catch (_) {
+          clearTimeout(timer);
+        }
+      }
+
+      async function tryNtfy() {
+        const ctrl = new AbortController();
+        const timer = setTimeout(() => ctrl.abort(), 3200);
+        try {
+          const res = await fetch('https://ntfy.sh/' + encodeURIComponent(RENDEZVOUS_TOPIC) + '/json?poll=1&since=12h', {
+            cache: 'no-store',
+            signal: ctrl.signal
+          });
+          clearTimeout(timer);
+          if (!res.ok) return;
+          const text = await res.text();
+          const lines = text.trim().split('\n').filter(Boolean);
+          for (let i = lines.length - 1; i >= 0; i--) {
+            try {
+              const env = JSON.parse(lines[i]);
+              const rawMsg = env.message ? JSON.parse(env.message) : env;
+              const msg = await decryptBeaconClient(rawMsg, AUTH_TOKEN);
+              if (msg && msg.lanIp) {
+                candidates.push({ msg, ts: Number(rawMsg.ts) || (Number(env.time) * 1000) || 0 });
+                break;
+              }
+            } catch (_) {}
+          }
+        } catch (_) {
+          clearTimeout(timer);
+        }
+      }
+
+      await Promise.race([
+        Promise.allSettled([tryGithubApi(), tryStaticPagesBeacon(), tryNtfy()]),
+        new Promise((resolve) => {
+          const checkFast = setInterval(() => {
+            if (candidates.some(c => c && c.msg && c.msg.publicHttpsUrl)) {
+              clearInterval(checkFast);
+              setTimeout(resolve, 150);
+            }
+          }, 50);
+          setTimeout(() => clearInterval(checkFast), 3300);
+        })
+      ]);
+      if (candidates.length === 0) return null;
+      candidates.sort((a, b) => b.ts - a.ts);
+      return candidates[0].msg;
+    }
+
+    async function scanSubnetForHeimdall(seedIp, extraIps = [], extraSubnets = []) {
+      if (window.location.protocol === 'https:') return null;
+
+      if (MDNS_HOST) {
+        const mdnsHit = await probeCandidateOrigin('http://' + MDNS_HOST + ':' + SERVER_PORT, 1200);
+        if (mdnsHit) return mdnsHit;
+      }
+
+      const prefixes = [];
+      const addPrefix = (ipOrPref) => {
+        const p = extractSubnetPrefix(ipOrPref);
+        if (p && !prefixes.includes(p)) prefixes.push(p);
+      };
+
+      addPrefix(seedIp);
+      for (const ip of (extraIps || [])) addPrefix(ip);
+      for (const s of (extraSubnets || [])) addPrefix(s);
+      addPrefix(window.location.hostname);
+
+      const webrtcPrefix = await detectLocalLanPrefixViaWebRTC(500);
+      if (webrtcPrefix) addPrefix(webrtcPrefix);
+
+      for (const savedPref of getKnownSubnetPrefixes()) addPrefix(savedPref);
+
+      const commonSubnets = [
+        '192.168.50.', '192.168.100.', '192.168.1.', '192.168.0.', '192.168.2.', '192.168.3.',
+        '192.168.4.', '192.168.5.', '192.168.8.', '192.168.10.', '192.168.11.', '192.168.12.',
+        '192.168.15.', '192.168.20.', '192.168.30.', '192.168.40.', '192.168.68.', '192.168.86.',
+        '192.168.88.', '192.168.123.', '192.168.178.', '192.168.200.', '192.168.254.',
+        '172.20.10.', '10.0.0.', '10.0.1.', '10.1.10.', '10.10.10.'
+      ];
+      const activeGatewayPrefixes = await detectActiveGatewaySubnets(commonSubnets, 220);
+      for (const activePref of activeGatewayPrefixes) {
+        const existingIdx = prefixes.indexOf(activePref);
+        if (existingIdx > 0) prefixes.splice(existingIdx, 1);
+        if (!prefixes.includes(activePref)) prefixes.unshift(activePref);
+      }
+      for (const common of commonSubnets) addPrefix(common);
+
+      const knownHosts = [];
+      const addHost = (h) => {
+        if (h >= 1 && h <= 254 && !knownHosts.includes(h)) knownHosts.push(h);
+      };
+      addHost(extractHostOctet(seedIp));
+      for (const ip of (extraIps || [])) addHost(extractHostOctet(ip));
+      for (const h of getKnownHostOctets()) addHost(h);
+
+      if (knownHosts.length > 0 && prefixes.length > 0) {
+        const fastChecks = [];
+        for (const prefix of prefixes.slice(0, 12)) {
+          for (const host of knownHosts.slice(0, 6)) {
+            fastChecks.push(probeCandidateOrigin('http://' + prefix + host + ':' + SERVER_PORT, 420));
+          }
+        }
+        const fastResults = await Promise.all(fastChecks);
+        const fastHit = fastResults.find(Boolean);
+        if (fastHit) return fastHit;
+      }
+
+      const batchSize = 48;
+      for (const prefix of prefixes) {
+        for (let start = 1; start <= 254; start += batchSize) {
+          const promises = [];
+          for (let host = start; host < start + batchSize && host <= 254; host++) {
+            const candidateOrigin = 'http://' + prefix + host + ':' + SERVER_PORT;
+            promises.push(probeCandidateOrigin(candidateOrigin, 450));
+          }
+          const results = await Promise.all(promises);
+          const hit = results.find(Boolean);
+          if (hit) return hit;
+        }
+      }
+      return null;
+    }
+
+    async function discoverHeimdallServerIp() {
+      if (isDiscoveringIp) return activeServerOrigin;
+      isDiscoveringIp = true;
+      const badge = document.getElementById('ipBadge');
+      const badgeText = document.getElementById('ipBadgeText');
+      if (!activeServerIp) {
+        if (badge) badge.classList.add('searching');
+        if (badgeText) badgeText.textContent = 'Scanning IP...';
+      }
+
+      try {
+        // 1. Check current activeServerOrigin (or savedMeta.publicHttpsUrl) first
+        const candidateCurrent = (activeServerOrigin && !isStaticCloudHostOrigin(activeServerOrigin))
+          ? activeServerOrigin
+          : (ON_STATIC_CLOUD_HOST && savedMeta && savedMeta.publicHttpsUrl && savedMeta.publicHttpsUrl.startsWith('https://') && !isStaticCloudHostOrigin(savedMeta.publicHttpsUrl)
+              ? savedMeta.publicHttpsUrl.replace(/\/+$/, '')
+              : '');
+        if (candidateCurrent) {
+          const currentOk = await probeCandidateOrigin(candidateCurrent, 3500);
+          if (currentOk) {
+            setActiveServerIp(currentOk.lanIp || activeServerIp || window.location.hostname, currentOk.port || SERVER_PORT, currentOk, currentOk._resolvedOrigin);
+            return activeServerOrigin;
+          } else if (ON_STATIC_CLOUD_HOST) {
+            activeServerOrigin = '';
+          }
+        }
+
+        // 2. Check live public rendezvous channel (ntfy.sh) for broadcasted Mac IP / HTTPS tunnel
+        const beacon = await fetchRendezvousLatestIp();
+        if (beacon) {
+          if (beacon.rendezvousTopic && beacon.rendezvousTopic !== RENDEZVOUS_TOPIC) {
+            RENDEZVOUS_TOPIC = beacon.rendezvousTopic;
+            saveDiscoveryMeta({ rendezvousTopic: RENDEZVOUS_TOPIC });
+          }
+          if (beacon.lanIp) {
+            activeServerIp = beacon.lanIp;
+            if (badge) badge.classList.remove('searching');
+            if (badgeText) badgeText.textContent = beacon.lanIp;
+            rememberSubnetAndIp([beacon.lanIp].concat(beacon.lanIps || []), beacon.subnets || []);
+            saveDiscoveryMeta({
+              lanIp: beacon.lanIp,
+              lanIps: beacon.lanIps,
+              subnets: beacon.subnets,
+              publicHttpsUrl: beacon.publicHttpsUrl || '',
+              mdnsHost: beacon.mdnsHost || MDNS_HOST
+            });
+          }
+          const candidateIps = Array.isArray(beacon.lanIps) && beacon.lanIps.length ? beacon.lanIps : [beacon.lanIp];
+          const probedOrigins = new Set();
+          let foundTunnel = false;
+          for (const candIp of candidateIps) {
+            if (!candIp) continue;
+            for (const candOrigin of buildCandidateOriginsForHost(candIp, beacon)) {
+              if (probedOrigins.has(candOrigin)) continue;
+              probedOrigins.add(candOrigin);
+              const hit = await probeCandidateOrigin(candOrigin, 3500);
+              if (hit) {
+                setActiveServerIp(candIp || hit.lanIp, hit.port || SERVER_PORT, hit, hit._resolvedOrigin);
+                foundTunnel = true;
+                return activeServerOrigin;
+              }
+            }
+          }
+          const beaconTs = Number(beacon.ts) || 0;
+          const isFreshBeacon = beacon.type !== 'server_shutdown' && beaconTs > 0 && Math.abs(Date.now() - beaconTs) < 60000;
+          if (!foundTunnel && ON_STATIC_CLOUD_HOST && window.location.protocol === 'https:' && isFreshBeacon) {
+            for (const candIp of candidateIps) {
+              if (!candIp) continue;
+              const lanReachable = await probeLocalLanReachableFromHttps(candIp, beacon.httpsPort || HTTPS_SERVER_PORT, 380);
+              if (lanReachable && maybeHandoffToLocalHttpOnLan(candIp, beacon.port || SERVER_PORT)) {
+                return activeServerOrigin;
+              }
+            }
+          }
+          if (!foundTunnel && ON_STATIC_CLOUD_HOST) {
+            activeServerOrigin = '';
+          }
+        }
+
+        // 3. Probe Bonjour/mDNS .local hostname (only when not on static HTTPS host)
+        if (MDNS_HOST && !ON_STATIC_CLOUD_HOST) {
+          for (const candOrigin of buildCandidateOriginsForHost(MDNS_HOST, savedMeta)) {
+            const mdnsHit = await probeCandidateOrigin(candOrigin, 2000);
+            if (mdnsHit) {
+              setActiveServerIp(mdnsHit.lanIp || MDNS_HOST, mdnsHit.port || SERVER_PORT, mdnsHit, mdnsHit._resolvedOrigin);
+              return activeServerOrigin;
+            }
+          }
+        }
+
+        // 4. Fast parallel subnet scan across dynamic & known /24 subnets (only on plain HTTP LAN)
+        if (!ON_STATIC_CLOUD_HOST && window.location.protocol !== 'https:') {
+          const lastKnownIp = (savedMeta && savedMeta.lanIp) || activeServerIp || window.location.hostname;
+          const extraIps = [].concat((savedMeta && savedMeta.lanIps) || []).concat(beacon && beacon.lanIps ? beacon.lanIps : []);
+          const extraSubnets = [].concat((savedMeta && savedMeta.subnets) || []).concat(beacon && beacon.subnets ? beacon.subnets : []);
+          const subnetHit = await scanSubnetForHeimdall(lastKnownIp, extraIps, extraSubnets);
+          if (subnetHit && subnetHit.lanIp) {
+            setActiveServerIp(subnetHit.lanIp, subnetHit.port || SERVER_PORT, subnetHit, subnetHit._resolvedOrigin);
+            return activeServerOrigin;
+          }
+        }
+      } finally {
+        isDiscoveringIp = false;
+      }
+      return activeServerOrigin;
+    }
+
+    function forceRediscoverIp() {
+      sendRendezvousCommand({ action: 'request_state' });
+      discoverHeimdallServerIp();
+    }
+
+    function openDirectLanUploader() {
+      if (!activeServerIp) return;
+      const hash = '#k=' + encodeURIComponent(AUTH_TOKEN || '') + (RENDEZVOUS_TOPIC ? '&t=' + encodeURIComponent(RENDEZVOUS_TOPIC) : '');
+      window.location.href = 'http://' + activeServerIp + ':' + SERVER_PORT + '/drop.html' + hash;
+    }
+
+    function subscribeRendezvousLiveStream() {
+      if (!RENDEZVOUS_TOPIC && AUTH_TOKEN) RENDEZVOUS_TOPIC = deriveTopicFromToken(AUTH_TOKEN);
+      if (!RENDEZVOUS_TOPIC || typeof EventSource === 'undefined') return;
+      try {
+        if (ntfyEventSource) ntfyEventSource.close();
+        ntfyEventSource = new EventSource('https://ntfy.sh/' + encodeURIComponent(RENDEZVOUS_TOPIC) + '/sse');
+        ntfyEventSource.onmessage = async (ev) => {
+          if (isUploadingBatch) return;
+          try {
+            const env = JSON.parse(ev.data);
+            const rawMsg = env.message ? JSON.parse(env.message) : env;
+            const msg = await decryptBeaconClient(rawMsg, AUTH_TOKEN);
+            if (msg) {
+              if (msg.rendezvousTopic && msg.rendezvousTopic !== RENDEZVOUS_TOPIC) {
+                RENDEZVOUS_TOPIC = msg.rendezvousTopic;
+                saveDiscoveryMeta({ rendezvousTopic: RENDEZVOUS_TOPIC });
+                subscribeRendezvousLiveStream();
+              }
+              if (msg.lanIp) {
+                activeServerIp = msg.lanIp;
+                const badge = document.getElementById('ipBadge');
+                const badgeText = document.getElementById('ipBadgeText');
+                if (badge) badge.classList.remove('searching');
+                if (badgeText) badgeText.textContent = msg.lanIp;
+              }
+              const candIps = Array.isArray(msg.lanIps) && msg.lanIps.length ? msg.lanIps : (msg.lanIp ? [msg.lanIp] : []);
+              const probedOrigins = new Set();
+              let switched = false;
+              for (const candIp of candIps) {
+                if (!candIp || switched) continue;
+                for (const candOrigin of buildCandidateOriginsForHost(candIp, msg)) {
+                  if (probedOrigins.has(candOrigin)) continue;
+                  probedOrigins.add(candOrigin);
+                  const hit = await probeCandidateOrigin(candOrigin, 3500);
+                  if (hit) {
+                    setActiveServerIp(candIp || hit.lanIp, hit.port || SERVER_PORT, hit, hit._resolvedOrigin);
+                    switched = true;
+                    break;
+                  }
+                }
+              }
+              if (!switched && ON_STATIC_CLOUD_HOST && !activeServerOrigin) {
+                activeServerOrigin = '';
+              }
+            }
+          } catch (_) {}
+        };
+      } catch (_) {}
+    }
+
+    async function restoreMetaFromServiceWorkerCache() {
+      try {
+        let swMeta = null;
+        if (typeof caches !== 'undefined' && caches && typeof caches.open === 'function') {
+          try {
+            const metaPath = new URL('./__heimdall_meta__.json', window.location.href).pathname;
+            const cache = await caches.open(SW_CACHE_NAME);
+            let matched = (await cache.match(metaPath)) || (await cache.match('/__heimdall_meta__.json'));
+            if (!matched && typeof caches.match === 'function') {
+              matched = (await caches.match(metaPath)) || (await caches.match('/__heimdall_meta__.json'));
+            }
+            if (matched) swMeta = await matched.json();
+          } catch (_) {}
+        }
+        if (!swMeta) {
+          const ctrl = new AbortController();
+          const t = setTimeout(() => ctrl.abort(), 450);
+          const r = await fetch('./__heimdall_meta__.json', { cache: 'no-store', signal: ctrl.signal });
+          clearTimeout(t);
+          if (r && r.ok) swMeta = await r.json();
+        }
+        if (swMeta && typeof swMeta === 'object') {
+          if (swMeta.authToken && !AUTH_TOKEN) {
+            AUTH_TOKEN = swMeta.authToken;
+            writeCookieToken(AUTH_TOKEN);
+          }
+          if (swMeta.rendezvousTopic && !RENDEZVOUS_TOPIC) {
+            RENDEZVOUS_TOPIC = swMeta.rendezvousTopic;
+            writeCookieTopic(RENDEZVOUS_TOPIC);
+          }
+          if (!RENDEZVOUS_TOPIC && AUTH_TOKEN) {
+            RENDEZVOUS_TOPIC = deriveTopicFromToken(AUTH_TOKEN);
+          }
+          if (swMeta.lanIp && !activeServerIp) activeServerIp = swMeta.lanIp;
+          saveDiscoveryMeta(swMeta);
+          syncUrlHashWithCredentials();
+        }
+      } catch (_) {}
+    }
+
+    async function bootDropApp() {
+      if (!AUTH_TOKEN) {
+        await restoreMetaFromServiceWorkerCache();
+      } else {
+        restoreMetaFromServiceWorkerCache();
+      }
+      syncUrlHashWithCredentials();
+      discoverHeimdallServerIp();
+      subscribeRendezvousLiveStream();
+      setTimeout(() => {
+        if (!activeServerOrigin || isStaticCloudHostOrigin(activeServerOrigin)) {
+          sendRendezvousCommand({ action: 'request_state' });
+        }
+      }, 600);
+      setInterval(() => {
+        if (!activeServerOrigin || isStaticCloudHostOrigin(activeServerOrigin)) {
+          discoverHeimdallServerIp();
+          return;
+        }
+        probeCandidateOrigin(activeServerOrigin, 3500).then((ok) => {
+          if (!ok) {
+            if (ON_STATIC_CLOUD_HOST) activeServerOrigin = '';
+            discoverHeimdallServerIp();
+          } else {
+            setActiveServerIp(ok.lanIp || activeServerIp || window.location.hostname, ok.port || SERVER_PORT, ok, ok._resolvedOrigin);
+          }
+        });
+      }, 6000);
+    }
+    bootDropApp();
+
+    const fileLib = document.getElementById('fileLibrary');
+    const fileCam = document.getElementById('fileCamera');
+    const progressWrap = document.getElementById('progressWrap');
+    const progressLabel = document.getElementById('progressLabel');
+    const progressPct = document.getElementById('progressPct');
+    const progressFill = document.getElementById('progressFill');
+    const retryFailedBtn = document.getElementById('retryFailedBtn');
+    const historyCard = document.getElementById('historyCard');
+    const historyList = document.getElementById('historyList');
+    let failedUploadQueue = [];
+    let activeWakeLock = null;
+
+    async function acquireUploadWakeLock() {
+      if ('wakeLock' in navigator && navigator.wakeLock) {
+        try {
+          activeWakeLock = await navigator.wakeLock.request('screen');
+        } catch (e) {}
+      }
+    }
+
+    async function releaseUploadWakeLock() {
+      if (activeWakeLock) {
+        try { await activeWakeLock.release(); } catch (e) {}
+        activeWakeLock = null;
+      }
+    }
+
+    async function uploadSingleFile(file, index, total, statusEl) {
+      if (!activeServerOrigin || isStaticCloudHostOrigin(activeServerOrigin)) {
+        sendRendezvousCommand({ action: 'request_state' });
+        await discoverHeimdallServerIp();
+      }
+      if ((!activeServerOrigin || isStaticCloudHostOrigin(activeServerOrigin)) && ON_STATIC_CLOUD_HOST) {
+        // Wait briefly for Mac tunnel wakeup + fresh beacon if tunnel was asleep
+        await new Promise(r => setTimeout(r, 1800));
+        await discoverHeimdallServerIp();
+      }
+      return new Promise((resolve, reject) => {
+        if (!activeServerOrigin || isStaticCloudHostOrigin(activeServerOrigin)) {
+          if (ON_STATIC_CLOUD_HOST && activeServerIp) {
+            const lanBtn = document.getElementById('directLanUploadBtn');
+            const lanTxt = document.getElementById('directLanIpText');
+            if (lanTxt) lanTxt.textContent = activeServerIp;
+            if (lanBtn) lanBtn.classList.add('visible');
+            reject(new Error('HTTPS tunnel reconnecting — tap Retry or Open Direct Wi-Fi Uploader below'));
+          } else {
+            reject(new Error('Searching for Heimdall Mac — tap Retry'));
+          }
+          return;
+        }
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', activeServerOrigin + '/api/upload', true);
+        xhr.setRequestHeader('X-Filename', encodeURIComponent(file.name));
+        if (AUTH_TOKEN) {
+          xhr.setRequestHeader('X-Heimdall-Token', AUTH_TOKEN);
+        }
+
+        xhr.upload.onprogress = (ev) => {
+          if (ev.lengthComputable) {
+            const pct = Math.round((ev.loaded / ev.total) * 100);
+            const mbLoaded = (ev.loaded / (1024 * 1024)).toFixed(1);
+            const mbTotal = (ev.total / (1024 * 1024)).toFixed(1);
+            if (pct >= 100) {
+              progressLabel.textContent = 'Saved on Mac • Adding to Rink Loop...';
+              if (statusEl) statusEl.textContent = 'Processing...';
+            } else {
+              progressLabel.textContent = total > 1
+                ? `Uploading (${index}/${total}) • ${mbLoaded}/${mbTotal} MB`
+                : `Uploading ${file.name} (${mbLoaded}/${mbTotal} MB)`;
+              if (statusEl) statusEl.textContent = pct + '%';
+            }
+            progressPct.textContent = pct + '%';
+            progressFill.style.width = pct + '%';
+          }
+        };
+
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            try {
+              resolve(JSON.parse(xhr.responseText));
+            } catch (e) {
+              resolve({ ok: true, filename: file.name });
+            }
+          } else {
+            reject(new Error('HTTP ' + xhr.status));
+          }
+        };
+
+        xhr.onerror = async () => {
+          if (ON_STATIC_CLOUD_HOST) activeServerOrigin = '';
+          await discoverHeimdallServerIp();
+          reject(new Error('Network interrupted — tap Retry'));
+        };
+        xhr.send(file);
+      });
+    }
+
+    async function runUploadBatch(files) {
+      if (!files || files.length === 0) return;
+      isUploadingBatch = true;
+      progressWrap.classList.add('active');
+      progressFill.style.width = '0%';
+      progressPct.textContent = '0%';
+      retryFailedBtn.classList.remove('visible');
+      historyCard.classList.add('visible');
+
+      await acquireUploadWakeLock();
+
+      let successCount = 0;
+      let lastErr = null;
+      const newFailed = [];
+
+      const rows = files.map((f, idx) => {
+        const row = document.createElement('div');
+        row.className = 'history-item';
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'history-name';
+        nameSpan.textContent = f.name;
+        const statusSpan = document.createElement('span');
+        statusSpan.className = 'history-pending';
+        statusSpan.textContent = idx === 0 ? 'Starting...' : 'Queued';
+        row.appendChild(nameSpan);
+        row.appendChild(statusSpan);
+        historyList.prepend(row);
+        return { file: f, row, nameSpan, statusSpan };
+      });
+
+      for (let i = 0; i < rows.length; i++) {
+        const item = rows[i];
+        try {
+          const res = await uploadSingleFile(item.file, i + 1, rows.length, item.statusSpan);
+          successCount++;
+          item.nameSpan.textContent = res.filename || item.file.name;
+          item.statusSpan.className = 'history-ok';
+          item.statusSpan.textContent = '✓ On TV Loop';
+        } catch (err) {
+          lastErr = err;
+          newFailed.push(item.file);
+          item.statusSpan.className = 'history-err';
+          item.statusSpan.textContent = '✕ Failed';
+          progressLabel.textContent = 'Upload failed: ' + err.message;
+          progressPct.textContent = '!';
+        }
+      }
+
+      await releaseUploadWakeLock();
+      isUploadingBatch = false;
+      failedUploadQueue = newFailed;
+
+      if (failedUploadQueue.length > 0) {
+        retryFailedBtn.textContent = `↻ Retry ${failedUploadQueue.length} Failed Upload${failedUploadQueue.length > 1 ? 's' : ''}`;
+        retryFailedBtn.classList.add('visible');
+      }
+
+      if (!lastErr && successCount > 0) {
+        progressLabel.textContent = '✓ Sent ' + successCount + ' video' + (successCount > 1 ? 's' : '') + ' to Rink Loop!';
+        progressPct.textContent = '100%';
+        progressFill.style.width = '100%';
+      } else if (lastErr && successCount > 0) {
+        progressLabel.textContent = 'Sent ' + successCount + '/' + rows.length + ' • Tap Retry below for failed clip';
+      }
+    }
+
+    async function handleFilesSelected(inputEl) {
+      const files = Array.from(inputEl.files || []);
+      if (files.length === 0) return;
+      inputEl.value = '';
+      await runUploadBatch(files);
+    }
+
+    async function retryFailedUploads() {
+      if (failedUploadQueue.length === 0) return;
+      const batch = failedUploadQueue.slice();
+      failedUploadQueue = [];
+      await runUploadBatch(batch);
+    }
+
+    fileLib.addEventListener('change', () => handleFilesSelected(fileLib));
+    fileCam.addEventListener('change', () => handleFilesSelected(fileCam));
+  </script>
+</body>
+</html>
