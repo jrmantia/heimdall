@@ -1,0 +1,45 @@
+{
+  "name": "Heimdall — Coach Remote",
+  "short_name": "Heimdall",
+  "description": "Ice-Side Instant Replay Controller, 1x/2x/4x Multi-View Switcher & Manual Clip Selector",
+  "start_url": "./remote.html?pwa=1",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait-primary",
+  "background_color": "#060913",
+  "theme_color": "#060913",
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "./heimdall_icon_192.png?v=23",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./heimdall_icon_192.png?v=23",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "./heimdall_icon_512.png?v=23",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./heimdall_icon_512.png?v=23",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "./heimdall_icon.png?v=23",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
